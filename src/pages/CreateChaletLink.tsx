@@ -13,8 +13,9 @@ import {
 } from "@/components/ui/select";
 import { getCountryByCode, formatCurrency } from "@/lib/countries";
 import { useChalets, useCreateLink } from "@/hooks/useSupabase";
-import { ArrowRight, Home, Copy, Check } from "lucide-react";
+import { ArrowRight, Home, Copy, Check, Share2, ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import QRCodeGenerator from "@/components/QRCodeGenerator";
 
 const CreateChaletLink = () => {
   const { country } = useParams<{ country: string }>();
@@ -79,6 +80,25 @@ const CreateChaletLink = () => {
       });
     }
   };
+
+  const handleShare = async () => {
+    if (createdLink && navigator.share) {
+      try {
+        await navigator.share({
+          title: "رابط حجز الشاليه",
+          text: `رابط حجز آمن لشاليه ${selectedChalet?.name || 'مختار'}`,
+          url: createdLink,
+        });
+      } catch (error) {
+        console.error("Error sharing:", error);
+        // Fallback to copy
+        handleCopy();
+      }
+    } else {
+      // Fallback to copy
+      handleCopy();
+    }
+  };
   
   if (!countryData) {
     return <div className="p-8 text-center">دولة غير صحيحة</div>;
@@ -102,8 +122,8 @@ const CreateChaletLink = () => {
               <code className="text-xs">{createdLink}</code>
             </div>
             
-            <div className="flex gap-3 justify-center">
-              <Button onClick={handleCopy}>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button onClick={handleCopy} className="flex-1">
                 {copied ? (
                   <>
                     <Check className="w-4 h-4 ml-2" />
@@ -119,11 +139,29 @@ const CreateChaletLink = () => {
               
               <Button
                 variant="outline"
-                onClick={() => window.open(createdLink, "_blank")}
+                onClick={handleShare}
+                className="flex-1"
               >
-                <span className="ml-2 text-sm">عرض المعاينة</span>
-                <ArrowRight className="w-4 h-4 mr-2" />
+                <Share2 className="w-4 h-4 ml-2" />
+                <span className="text-sm">مشاركة</span>
               </Button>
+              
+              <Button
+                variant="outline"
+                onClick={() => window.open(createdLink, "_blank")}
+                className="flex-1"
+              >
+                <ExternalLink className="w-4 h-4 ml-2" />
+                <span className="text-sm">معاينة</span>
+              </Button>
+            </div>
+            
+            <div className="mt-3">
+              <QRCodeGenerator 
+                url={createdLink} 
+                title="QR Code - رابط حجز الشاليه"
+                className="w-full"
+              />
             </div>
             
             <Button
